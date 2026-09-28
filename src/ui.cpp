@@ -8,6 +8,7 @@
 #include "audio.h"
 #include "config.h"
 #include "meshpoint.h"
+#include "timezones.h"
 
 namespace ui {
 namespace {
@@ -56,7 +57,8 @@ char openNode[16] = "";  // node detail overlay (Nodes page)
 bool chatOpen = false;   // conversation view (Chat page)
 bool chatStickBottom = true;
 int listScroll = 0;       // list position to restore when an overlay closes
-uint32_t updateConfirmUntil = 0;  // Settings: "Install now?" confirmation showing until this time
+uint32_t updateConfirmUntil = 0;
+bool tzPickerOpen = false;  // Settings: time zone list showing  // Settings: "Install now?" confirmation showing until this time
 uint32_t lastVersion = UINT32_MAX;
 uint32_t lastDrawMs = 0;
 bool dirty = true;
@@ -69,7 +71,7 @@ int downX = 0, downY = 0, downScroll = 0;
 // Tap targets registered during the last render (content coords are screen coords).
 enum class Action : uint8_t { None, Tab, OpenNode, OpenConv, Back, Flip, BrightDown, BrightUp, Portal, Refresh,
                               ZoomIn, ZoomOut, ZoomFit, AutoDim, UpdateStart, UpdateConfirm, UpdateCancel,
-                              UpdateCheck, UpdateDismiss, Mute, VolDown, VolUp, TestChannel, TestDM, TestNode };
+                              UpdateCheck, UpdateDismiss, OpenTimezone, PickTimezone, Mute, VolDown, VolUp, TestChannel, TestDM, TestNode };
 struct Target {
     int16_t x, y, w, h;
     Action action;
@@ -1176,6 +1178,32 @@ void mapTap(int x, int y) {
 
 // ---- Settings ----
 
+// Time zone picker (replaces the Settings page while open).
+constexpr int TZ_ROW_H = 38;
+
+int drawTimezonePicker(int y0) {
+    const Settings& s = config::get();
+    int y = y0 + 8;
+    backButton(y);
+    font(F_TITLE);
+    text("Time zone", 96, y + 16, C_TEXT);
+    y += 42;
+    for (int i = 0; i < kTimeZoneCount; ++i, y += TZ_ROW_H) {
+        if (y + TZ_ROW_H < CONTENT_Y || y > CONTENT_Y + CONTENT_H) continue;
+        const bool current = !strcmp(kTimeZones[i].posix, s.tz.c_str());
+        if (current) cv->fillRect(0, y, W, TZ_ROW_H, mix(C_BG, C_CYAN, 45));
+        else if (i % 2 == 0) cv->fillRect(0, y, W, TZ_ROW_H, mix(C_BG, C_CARD, 110));
+        font(F_BODY_B);
+        text(kTimeZones[i].label, 16, y + TZ_ROW_H / 2, current ? C_CYAN : C_TEXT);
+        font(F_SMALL);
+        textFit(kTimeZones[i].posix, W - 16, y + TZ_ROW_H / 2, 200, C_MUTED, lgfx::middle_right);
+        addTarget(0, y, W, TZ_ROW_H, Action::PickTimezone, i);
+    }
+    font(F_SMALL);
+    text("Other zones: use the setup portal or the 'tz' serial command.", 16, y + 14, C_MUTED);
+    return (y + 30) - y0;
+}
+
 // Meshpoint software update banner (top of Settings) while an update is available or running.
 int drawUpdateBanner(const model::Model& m, int y) {
     const model::UpdateInfo& u = m.update;
@@ -1280,6 +1308,11 @@ int drawSettings(const model::Model& m, int y0) {
         else if (u.checked && u.remoteVersion[0]) snprintf(add("Software", C_GREEN), 96, "up to date (v%s)", u.localVersion);
         else if (u.checked) strlcpy(add("Software"), "couldn't check GitHub for updates", 96);
     }
+    {
+        const char* tzLabel = timeZoneLabel(s.tz.c_str());
+        if (tzLabel) snprintf(add("Time zone"), 96, "%s (%s)", tzLabel, s.tz.c_str());
+        else snprintf(add("Time zone"), 96, "custom: %s", s.tz.c_str());
+    }
     snprintf(add("Display"), 96, "brightness %d%%  %s  auto-dim %s", s.brightness * 100 / 255,
              s.flip ? "flipped" : "normal", s.autoDim ? "on" : "off");
     if (s.muted) strlcpy(add("Alerts", C_AMBER), "muted", 96);
@@ -1304,6 +1337,13 @@ int drawSettings(const model::Model& m, int y0) {
     y += bh + 8;
     button(s.autoDim ? "Auto-dim after 5 min: ON" : "Auto-dim after 5 min: OFF", 8, y, W - 16, bh, Action::AutoDim,
            s.autoDim ? C_GREEN : C_MUTED);
+    y += bh + 8;
+    {
+        const char* tzLabel = timeZoneLabel(s.tz.c_str());
+        char tzText[80];
+        snprintf(tzText, sizeof(tzText), "Time zone: %s", tzLabel ? tzLabel : "Custom");
+        button(tzText, 8, y, W - 16, bh, Action::OpenTimezone);
+    }
     y += bh + 16;
 
     // Alert sound controls.
@@ -1344,19 +1384,21 @@ int drawSettings(const model::Model& m, int y0) {
 // ---- actions ----
 
 void closeOverlay() {
-    if (openNode[0] || chatOpen) scroll[page] = listScroll;
+    if (openNode[0] || chatOpen || tzPickerOpen) scroll[page] = listScroll;
     openNode[0] = 0;
     chatOpen = false;
+    tzPickerOpen = false;
 }
 
 void setPage(Page p) {
     if (p == page) {
         // Tapping the active tab closes overlays / scrolls to top.
-        if (openNode[0] || chatOpen) closeOverlay();
+        if (openNode[0] || chatOpen || tzPickerOpen) closeOverlay();
         else scroll[p] = 0;
     } else {
         openNode[0] = 0;
         chatOpen = false;
+        tzPickerOpen = false;
     }
     page = p;
     meshpoint::setActivePage((int)p);
@@ -1414,6 +1456,26 @@ void onTap(int x, int y) {
                 drawSplash("Starting setup portal", "Restarting...");
                 delay(300);
                 config::rebootIntoPortal();
+            case Action::OpenTimezone: {
+                listScroll = scroll[SETTINGS];
+                tzPickerOpen = true;
+                // Start with the current zone in view.
+                int idx = 0;
+                for (int i = 0; i < kTimeZoneCount; ++i) {
+                    if (!strcmp(kTimeZones[i].posix, s.tz.c_str())) idx = i;
+                }
+                scroll[SETTINGS] = max(0, 50 + idx * TZ_ROW_H - CONTENT_H / 2);
+                break;
+            }
+            case Action::PickTimezone:
+                if (t.arg >= 0 && t.arg < kTimeZoneCount) {
+                    {
+                        model::Guard g;
+                        config::setTimezone(kTimeZones[t.arg].posix);
+                    }
+                    closeOverlay();
+                }
+                break;
             case Action::UpdateStart:
                 updateConfirmUntil = millis() + 15000;
                 break;
@@ -1560,7 +1622,7 @@ bool render(bool force) {
         case FEED: h = drawFeed(m, y0); break;
         case CHAT: h = chatOpen ? drawConversation(m, y0) : drawConversations(m, y0); break;
         case MAP: h = drawMap(m); break;
-        case SETTINGS: h = drawSettings(m, y0); break;
+        case SETTINGS: h = tzPickerOpen ? drawTimezonePicker(y0) : drawSettings(m, y0); break;
         default: break;
     }
     cv->clearClipRect();

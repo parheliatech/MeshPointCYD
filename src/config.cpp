@@ -81,6 +81,13 @@ void save() {
     p.end();
 }
 
+void setTimezone(const String& tz) {
+    settings.tz = tz.length() ? tz : String("UTC0");
+    save();
+    setenv("TZ", settings.tz.c_str(), 1);
+    tzset();
+}
+
 void rebootIntoPortal() {
     Preferences p;
     p.begin(kNamespace, false);
@@ -163,10 +170,7 @@ void handleSerialLine(const String& raw) {
         save();
         Serial.println("ok");
     } else if (cmd == "tz" && arg.length()) {
-        settings.tz = arg;
-        save();
-        setenv("TZ", settings.tz.c_str(), 1);
-        tzset();
+        setTimezone(arg);
         Serial.println("ok");
     } else if (cmd == "flip") {
         settings.flip = arg.toInt() != 0;

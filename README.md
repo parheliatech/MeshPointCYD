@@ -92,7 +92,8 @@ its own setup hotspot:
    - **Meshpoint URL**: e.g. `http://192.168.86.106:8080` (the same address you use in a browser)
    - **Username**: `viewer` or `admin`
    - **Password**: that account's dashboard password
-   - **Time zone**: a POSIX time zone string, for example:
+   - **Time zone** (optional, defaults to UTC): a POSIX time zone string. It's easier to leave
+     this and pick your zone later from a list in **Settings → Time zone**. Examples:
 
      | Location | Enter |
      |---|---|
@@ -293,6 +294,7 @@ Scroll down for the controls:
 | **Dimmer / Brighter** | Adjusts screen brightness |
 | **Refresh** | Logs in again and reloads everything now |
 | **Auto-dim after 5 min** | Turns [auto-dim](#auto-dim) on or off (default off) |
+| **Time zone** | Opens a list of common time zones; tap one to use it. The clock starts on UTC until you choose. Zones not in the list can be set in the setup portal or with the `tz` serial command, and show as "Custom". |
 | **Mute / Unmute** | Silences all alert sounds |
 | **Vol - / Vol +** | Alert volume in 10% steps, with a short chime so you hear the new level |
 | **Test channel / Test DM / Test new node** | Plays each alert sound, even when muted |
@@ -405,7 +407,7 @@ Settings changed this way take effect immediately and are saved.
 | "Can't reach Meshpoint" | Check the Meshpoint URL, including `http://` and `:8080`, and that the Meshpoint is running. If its IP address changed, update the URL. |
 | Amber light | The last update is more than a minute old. It usually recovers by itself; tap **Refresh** to retry now. |
 | Picture is upside down | **Settings → Flip**. |
-| Clock is wrong | Set your time zone (`tz` command or the setup portal). The clock needs internet access for time sync. |
+| Clock is wrong | The clock starts on UTC. Pick your zone in **Settings → Time zone**. The clock also needs internet access for time sync. |
 | No sound | Check **Mute** and the volume in Settings, and try the **Test** buttons. |
 | Map is empty | Only nodes that report a GPS position appear. Nodes at 0,0 are hidden. |
 | Screen stays dark | It may be auto-dimmed. Touch it. Otherwise press **Brighter** or check `show` over USB. |

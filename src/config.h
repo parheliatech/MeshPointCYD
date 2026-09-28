@@ -28,6 +28,9 @@ bool consumePortalRequest();
 // Run the WiFiManager captive portal (blocking). Returns true if WiFi connected.
 bool runPortal(bool forcePortal);
 
+// Save and apply a POSIX time zone string (e.g. "UTC0", "MST7").
+void setTimezone(const String& tz);
+
 // Handle one line of serial input ("help" lists commands).
 void handleSerialLine(const String& line);
 
