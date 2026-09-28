@@ -64,7 +64,7 @@ the Meshpoint. It can't send messages or change the Meshpoint's configuration.
 
 Get the code:
 
-    git clone https://github.com/kendelmccarley/MeshPointCYD.git
+    git clone https://github.com/parheliatech/MeshPointCYD.git
     cd MeshPointCYD
 
 Optionally, back up the board's original firmware first so you can restore it later
