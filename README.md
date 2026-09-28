@@ -62,7 +62,21 @@ the Meshpoint. It can't send messages or change the Meshpoint's configuration.
 
 ### 1. Install the software
 
-Connect the board by USB, then from this folder run:
+Get the code:
+
+    git clone https://github.com/kendelmccarley/MeshPointCYD.git
+    cd MeshPointCYD
+
+Optionally, back up the board's original firmware first so you can restore it later
+(`esptool.py` comes with PlatformIO):
+
+    mkdir -p backup
+    esptool.py --port /dev/ttyACM0 read_flash 0 0x1000000 backup/factory_flash_16MB.bin
+
+The backup can contain the WiFi password saved on the board, so keep it private. The
+`backup/` folder is already listed in `.gitignore`.
+
+Then connect the board by USB and run:
 
     pio run -t upload
 
@@ -399,8 +413,8 @@ Settings changed this way take effect immediately and are saved.
 | Gear stays amber after updating | The display re-checks every minute for 15 minutes after an update. Use **Check for Meshpoint update** to check again. |
 | Screen stays blank after a software update | The update was probably interrupted. Run `pio run -t upload` again. |
 
-To restore the board's original Freenove demo firmware, flash the backup taken before this
-software was installed:
+To restore the board's original Freenove demo firmware, flash the backup you took before
+installing this software (see [First-time setup](#first-time-setup)):
 
     esptool.py --port /dev/ttyACM0 write_flash 0 backup/factory_flash_16MB.bin
 
@@ -459,3 +473,14 @@ response body. It then polls:
 - Extra serial commands for testing: `screenshot`, `tap x y`, `swipe x y1 y2`,
   `drag x1 y1 x2 y2`, `touchlog`, `touchraw`, `touchdiag`. Tab centres are at y = 298 and
   x = 42 (Home), 126 (Nodes), 210 (Map), 294 (Feed), 378 (Chat), 450 (Settings).
+
+---
+
+## License
+
+MeshPoint CYD is free software under the [GNU Affero General Public License v3.0](LICENSE),
+the same license as Meshpoint. Parts are adapted from Freenove's FNK0104 example code
+(CC BY-NC-SA 3.0), Espressif's ES8311 driver, and Meshpoint itself. See [NOTICE](NOTICE) for
+details and attribution.
+
+This project is not affiliated with Meshpoint, Freenove, or Meshtastic.

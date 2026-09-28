@@ -1,0 +1,30 @@
+MeshPoint CYD
+Copyright (C) 2026 Kendel McCarley
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+GNU Affero General Public License as published by the Free Software Foundation, version 3 of the
+License. See the LICENSE file for the full text.
+
+Third-party material
+--------------------
+
+Parts of this project are adapted from, or based on data from, the following works:
+
+* Freenove ESP32-S3 Display (FNK0104) example code
+  https://github.com/Freenove/Freenove_ESP32_S3_Display
+  Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 3.0 (CC BY-NC-SA 3.0).
+  Used: the ST77922 panel initialization register sequence and pin assignments (src/panel.cpp),
+  the touch-controller register layout (src/panel.cpp), and the ES8311 codec pin assignments.
+
+* Espressif es8311 codec driver (as distributed in the Freenove examples)
+  Used: the ES8311 register initialization sequence and clock coefficients (src/audio.cpp).
+
+* Meshpoint by KMX415
+  https://github.com/KMX415/meshpoint
+  Licensed under the GNU Affero General Public License v3.0.
+  Used: the Meshtastic hardware-model name table (src/hw_names.h, from
+  frontend/js/meshtastic_hw_names.js, credited there to javastraat/meshpoint), the dashboard
+  colour palette, and the REST API this display consumes.
+
+Libraries used at build time (fetched by PlatformIO, not included in this repository):
+LovyanGFX (FreeBSD license), ArduinoJson (MIT), WiFiManager (MIT), Arduino-ESP32 (LGPL-2.1).
