@@ -1,0 +1,6 @@
+# PlatformIO build output
+.pio/
+
+# Full flash dump of the board's original firmware. It contains the WiFi credentials that were
+# saved on the board, so keep it local and never publish it.
+backup/
