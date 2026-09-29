@@ -448,7 +448,7 @@ int drawHome(const model::Model& m, int y0) {
     struct Row { const char* k; char v[20]; uint32_t c; } rows[5];
     int nr = 0;
     auto addRow = [&](const char* k, uint32_t c) -> char* { rows[nr].k = k; rows[nr].c = c; return rows[nr++].v; };
-    if (model::has(h.cpu)) snprintf(addRow("CPU", h.cpu > 80 ? C_AMBER : C_TEXT), 20, "%.0f%%", h.cpu);
+    if (model::has(h.cpu)) snprintf(addRow("CPU", h.cpu > 80 ? C_AMBER : C_TEXT), 20, h.cpu < 10 ? "%.1f%%" : "%.0f%%", h.cpu);
     if (model::has(h.temp)) snprintf(addRow("Temp", h.temp > 70 ? C_RED : h.temp > 60 ? C_AMBER : C_TEXT), 20, "%.1f C", h.temp);
     if (model::has(h.mem)) snprintf(addRow("Memory", h.mem > 85 ? C_AMBER : C_TEXT), 20, "%.0f%%", h.mem);
     if (model::has(h.disk)) snprintf(addRow("Disk", h.disk > 90 ? C_RED : C_TEXT), 20, "%.0f%%", h.disk);
