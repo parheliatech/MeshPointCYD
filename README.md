@@ -89,7 +89,7 @@ its own setup hotspot:
 2. A setup page should open automatically. If it doesn't, browse to **http://192.168.4.1**.
 3. Choose your WiFi network and enter its password.
 4. Fill in the Meshpoint fields:
-   - **Meshpoint URL**: e.g. `http://192.168.86.106:8080` (the same address you use in a browser)
+   - **Meshpoint URL**: e.g. `http://192.168.86.106:8080` (the same address you use in a browser). A hostname works too, e.g. `http://mymeshpoint:8080` or `http://mymeshpoint.local:8080`, and is better than an IP address because it keeps working if the Meshpoint's IP changes (the name must resolve on your network)
    - **Username**: `viewer` or `admin`
    - **Password**: that account's dashboard password
    - **Time zone** (optional, defaults to UTC): a POSIX time zone string. It's easier to leave
@@ -404,7 +404,7 @@ Settings changed this way take effect immediately and are saved.
 |---|---|
 | Red status light, "WiFi not connected" | The network must be 2.4 GHz. Re-enter WiFi details with the setup portal. |
 | "Meshpoint login failed" | Check the username (`viewer` or `admin`) and password. Log in with the same details in a browser to confirm. The Meshpoint locks an account for 5 minutes after 5 wrong passwords. |
-| "Can't reach Meshpoint" | Check the Meshpoint URL, including `http://` and `:8080`, and that the Meshpoint is running. If its IP address changed, update the URL. |
+| "Can't reach Meshpoint" | Check the Meshpoint URL, including `http://` and `:8080`, and that the Meshpoint is running. If you used an IP address and it changed, update the URL, or switch to the Meshpoint's hostname so it can't go stale. |
 | Amber light | The last update is more than a minute old. It usually recovers by itself; tap **Refresh** to retry now. |
 | Picture is upside down | **Settings → Flip**. |
 | Clock is wrong | The clock starts on UTC. Pick your zone in **Settings → Time zone**. The clock also needs internet access for time sync. |
