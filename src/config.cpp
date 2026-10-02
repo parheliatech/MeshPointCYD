@@ -128,7 +128,26 @@ bool runPortal(bool forcePortal) {
     wm.setSaveParamsCallback([&]() { saveRequested = true; });
     wm.setSaveConfigCallback([&]() { saveRequested = true; });
 
-    bool ok = forcePortal ? wm.startConfigPortal(kApName) : wm.autoConnect(kApName);
+    bool ok;
+    if (forcePortal) {
+        // The blocking portal only returns after the WiFi form is submitted, so saving just the
+        // Meshpoint URL on the setup page never took effect. Run it non-blocking and leave as
+        // soon as either form has been saved.
+        wm.setConfigPortalBlocking(false);
+        wm.startConfigPortal(kApName);
+        const uint32_t deadline = millis() + 600000;
+        uint32_t savedAt = 0;
+        while (wm.getConfigPortalActive() && millis() < deadline) {
+            wm.process();
+            if (saveRequested && !savedAt) savedAt = millis();
+            if (savedAt && millis() - savedAt > 3000) break;  // let the "saved" page finish
+            delay(5);
+        }
+        if (wm.getConfigPortalActive()) wm.stopConfigPortal();
+        ok = WiFi.isConnected();
+    } else {
+        ok = wm.autoConnect(kApName);
+    }
 
     if (saveRequested) {
         settings.url = pUrl.getValue();
